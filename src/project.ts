@@ -8,6 +8,7 @@
  */
 
 export const PREVIEW_MAX = 200;
+export const TOOL_ARGS_SNIPPET_MAX = 40;
 
 export type FilterMode = "default" | "no-tools" | "user-only" | "labeled-only" | "all";
 
@@ -43,6 +44,8 @@ export interface ToolCallMeta {
   pattern?: string;
   offset?: unknown;
   limit?: unknown;
+  /** Shallow, capped JSON snippet for unknown tools. Never a full stringify. */
+  argsSnippet?: string;
 }
 
 export interface SlimEntry {
@@ -163,15 +166,52 @@ export function normalizePreview(text: string): string {
   return text.replace(/[\n\t]/g, " ").trim();
 }
 
+export function summarizeToolArgs(args: unknown, max = TOOL_ARGS_SNIPPET_MAX): string {
+  if (args == null) return "";
+  if (typeof args !== "object") {
+    const s = String(args);
+    return s.length > max ? s.slice(0, max) + "..." : s;
+  }
+  const obj = args as Record<string, unknown>;
+  const shallow: Record<string, unknown> = {};
+  for (const key of Object.keys(obj)) {
+    const v = obj[key];
+    if (typeof v === "string") {
+      shallow[key] = v.length > max ? v.slice(0, max) : v;
+    } else if (typeof v === "number" || typeof v === "boolean" || v === null) {
+      shallow[key] = v;
+    } else {
+      shallow[key] = "...";
+    }
+    try {
+      if (JSON.stringify(shallow).length >= max) break;
+    } catch {
+      break;
+    }
+  }
+  let s: string;
+  try {
+    s = JSON.stringify(shallow);
+  } catch {
+    return "";
+  }
+  return s.length > max ? s.slice(0, max) + "..." : s;
+}
+
 export function pickToolMeta(name: string, args: unknown): ToolCallMeta {
   const meta: ToolCallMeta = { name };
-  if (!args || typeof args !== "object") return meta;
+  if (args == null) return meta;
+  if (typeof args !== "object") {
+    meta.argsSnippet = summarizeToolArgs(args);
+    return meta;
+  }
   const a = args as Record<string, unknown>;
   for (const key of TOOL_META_STRING_KEYS) {
     if (typeof a[key] === "string") meta[key] = a[key];
   }
   if (a.offset !== undefined) meta.offset = a.offset;
   if (a.limit !== undefined) meta.limit = a.limit;
+  meta.argsSnippet = summarizeToolArgs(a);
   return meta;
 }
 
@@ -212,11 +252,7 @@ export function formatToolCall(meta: ToolCallMeta): string {
     case "ls":
       return "[ls: " + shortenPath(String(meta.path || ".")) + "]";
     default: {
-      const hint = meta.path || meta.file_path || meta.command || meta.pattern;
-      if (typeof hint === "string" && hint.length > 0) {
-        const sliced = hint.replace(/[\n\t]/g, " ").trim().slice(0, 40);
-        return "[" + name + ": " + sliced + "]";
-      }
+      if (meta.argsSnippet) return "[" + name + ": " + meta.argsSnippet + "]";
       return "[" + name + "]";
     }
   }

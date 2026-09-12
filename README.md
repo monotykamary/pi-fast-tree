@@ -2,38 +2,24 @@
 
 # ⚡ pi-fast-tree
 
-**Instant session tree navigator for [pi](https://github.com/earendil-works/pi-coding-agent)**
+**Instant session-tree navigator for [Pi](https://github.com/earendil-works/pi-coding-agent)**
 
-_Projects each entry down to ids, topology, and a 200-character preview — no full payload walks._
+_Same `/tree`. Same keys. A slim projection so fat sessions don't freeze the picker._
 
-[![pi extension](https://img.shields.io/badge/pi-extension-blueviolet)](https://github.com/earendil-works/pi-coding-agent)
-[![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+<p>
+  <img src="https://raw.githubusercontent.com/monotykamary/pi-fast-tree/main/media/cover.svg" alt="pi-fast-tree: a session tree lighting up from a slim scan while the full-payload blob stays dark" width="1100">
+</p>
+
+[![npm version](https://img.shields.io/npm/v/pi-fast-tree?style=for-the-badge&logo=npm&color=cb3837)](https://www.npmjs.com/package/pi-fast-tree)
+[![checks](https://img.shields.io/github/actions/workflow/status/monotykamary/pi-fast-tree/test.yml?branch=main&style=for-the-badge&label=checks)](https://github.com/monotykamary/pi-fast-tree/actions/workflows/test.yml)
+[![pi extension](https://img.shields.io/badge/pi-extension-8b5cf6?style=for-the-badge)](https://github.com/earendil-works/pi-coding-agent)
+[![license](https://img.shields.io/badge/license-MIT-f4c430?style=for-the-badge)](LICENSE)
 
 </div>
 
----
+Built-in `/tree` freezes on fat sessions because the picker keeps every `SessionEntry` — tool arguments, images, whole assistant bodies — on the nodes it flattens, filters, and searches. pi-fast-tree hijacks `/tree` and paints from a **slim projection**: ids, topology, a 200-character preview, and a precomputed search haystack.
 
-> Built-in `/tree` freezes on fat sessions because the picker keeps every `SessionEntry` — tool arguments, images, whole assistant bodies — on the nodes it flattens, filters, and searches.
-> pi-fast-tree's hijacked `/tree` paints from a **slim projection** instead.
-
-Same navigator UI and keybindings as `/tree`. The difference is the picker never materializes full message content to draw a row or match a keystroke. Search and labels run against a precomputed haystack. Copy still reads the real entry, and Enter still calls pi's `navigateTree`.
-
-```
-──────────────────────────────────────────────────────────
-
-  Session Tree
-  ↑/↓ move · ←/→ page · Ctrl+←/→ branch · Ctrl+X copy · Shift+L label
-  Type to search: oauth_
-
-› • user: Fix the auth bypass in middleware
-    └─ assistant: Here's the patch…
-       ├─ user: Let's try approach A
-       └─ user: Actually, approach B          ← active
-
-  (4/128)
-
-──────────────────────────────────────────────────────────
-```
+Selecting a node still calls Pi's `navigateTree`. Branch summarization, leaf movement, and the transcript rebuild are unchanged.
 
 ## Why this is not pi-fast-resume
 
@@ -48,31 +34,33 @@ Partial JSONL reads do not help `/tree`. The current session is already parsed. 
 
 ## Install
 
-**With `pi install`** (recommended):
-
-```bash
+```sh
 pi install npm:pi-fast-tree
 ```
 
-Or install from GitHub:
+<details>
+<summary>Other install methods</summary>
 
-```bash
-pi install https://github.com/monotykamary/pi-fast-tree
+From GitHub:
+
+```sh
+pi install git:github.com/monotykamary/pi-fast-tree
 ```
 
-**Local development** — add the extension path directly:
+From a local checkout:
 
-```json
-{
-  "extensions": ["./path/to/pi-fast-tree/fast-tree.ts"]
-}
+```sh
+bun install
+pi install /absolute/path/to/pi-fast-tree
 ```
 
-Reload with `/reload` after any install method.
+Then `/reload`.
 
-## Usage
+</details>
 
 Hijack mode is **on by default** — `/tree`, double-escape, and `app.session.tree` open the fast navigator.
+
+## Usage
 
 ```
 /tree                 Open fast navigator (hijack mode)
@@ -96,7 +84,7 @@ Identical to built-in `/tree`:
 | Ctrl+O | Cycle filter mode |
 | typing | Filter by precomputed preview + label + role |
 
-Filter modes: default, no-tools, user-only, labeled-only, all. Default comes from `treeFilterMode` in settings.
+Filter modes: default, no-tools, user-only, labeled-only, and all. Default comes from `treeFilterMode` in settings.
 
 ## Config
 
@@ -118,20 +106,25 @@ Reload with `/reload` after changing config.
 
 ### How hijack works
 
-On load, the extension patches `InteractiveMode.prototype.showTreeSelector`. Built-in `/tree` returns early inside interactive `onSubmit` before extension commands run, so this is the same approach as pi-fast-resume. On `session_shutdown` the prototype is restored. If `showTreeSelector` is missing, it falls back to the original.
-
-Selecting a node still calls `ctx.navigateTree()` — branch summarization, leaf movement, and transcript rebuild are pi's, not a reimplementation.
+On load, the extension patches `InteractiveMode.prototype.showTreeSelector`. Built-in `/tree` returns early inside interactive `onSubmit` before extension commands run, so this is the same approach as [pi-fast-resume](https://github.com/monotykamary/pi-fast-resume). On `session_shutdown` the prototype is restored. If `showTreeSelector` is missing, it falls back to the original.
 
 ## Known limitations
 
 | Area | Built-in `/tree` | pi-fast-tree | Impact |
 | ---- | ---------------- | ------------ | ------ |
 | **Search depth** | Matches against extracted message text (still capped at 200 after a full concat) | Matches the **capped preview** + label + role computed once | A token that only appears after the first 200 characters of a message will not match. |
-| **Unknown tool args** | `JSON.stringify(args).slice(0, 40)` | Shows `[name]` or a single known string field (`path` / `command` / `pattern`) | Custom tools with no path-like field show the name only. Avoids walking megabyte argument blobs. |
+| **Unknown tool args** | `JSON.stringify(args).slice(0, 40)` | Same 40-char snippet, but only from **shallow** scalars (nested objects become `...`) | Custom tool rows still show `[name: {…}]`. Megabyte nested payloads are not stringified. |
 | **Abort-during-summary** | Re-opens `/tree` on summarization abort | Cancelled `navigateTree` notifies and returns | Escape-during-summary uses pi's navigation result; the picker does not auto-reopen on abort. |
 
 Copy (`Ctrl+X`) reads the **full** selected entry via `sessionManager.getEntry`, so it is not capped.
 
+## Development
+
+```sh
+bun install
+bun run check        # typecheck + vitest + knip
+```
+
 ## License
 
-[MIT](./LICENSE)
+[MIT](LICENSE).

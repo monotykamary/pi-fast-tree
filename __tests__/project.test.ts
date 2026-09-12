@@ -64,10 +64,15 @@ describe("formatToolCall", () => {
     expect(formatToolCall({ name: "bash", command: "echo hi" })).toBe("[bash: echo hi]");
   });
 
-  it("does not stringify unknown tool argument blobs", () => {
-    const meta = pickToolMeta("my_tool", { payload: "x".repeat(100_000), path: "/tmp/x" });
+  it("shows a capped snippet for unknown tools without retaining blobs", () => {
+    const payload = "x".repeat(100_000);
+    const meta = pickToolMeta("my_tool", { payload, path: "/tmp/x" });
     expect("payload" in meta).toBe(false);
-    expect(formatToolCall(meta)).toBe("[my_tool: /tmp/x]");
+    expect(meta.argsSnippet).toBeDefined();
+    expect(meta.argsSnippet!.length).toBeLessThanOrEqual(43);
+    expect(meta.argsSnippet!.includes(payload)).toBe(false);
+    expect(formatToolCall(meta).startsWith("[my_tool: {")).toBe(true);
+    expect(formatToolCall(meta).includes(payload)).toBe(false);
   });
 });
 

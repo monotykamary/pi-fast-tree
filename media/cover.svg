@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1100" height="330" viewBox="0 0 1100 330" role="img" aria-labelledby="title desc">
+  <title id="title">pi-fast-tree cover</title>
+  <desc id="desc">A session tree lighting up from a slim scan: the heavy full-payload blob stays dark on the left while connectors, nodes, and an active leaf flash cyan on the right.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#070b12"/>
+      <stop offset="45%" stop-color="#0a0e14"/>
+      <stop offset="100%" stop-color="#061018"/>
+    </linearGradient>
+    <radialGradient id="core" cx="68%" cy="42%" r="45%">
+      <stop offset="0%" stop-color="#5eead4" stop-opacity="0.55"/>
+      <stop offset="35%" stop-color="#22d3ee" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#0a0e14" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bolt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e0f2fe" stop-opacity="0">
+        <animate attributeName="stop-opacity" values="0;1;0" dur="2.8s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="0.45" stop-color="#22d3ee" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#67e8f9" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="heavy" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#334155" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#1e293b" stop-opacity="0.2"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="3.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1100" height="330" fill="url(#bg)"/>
+  <rect width="1100" height="330" fill="url(#core)"/>
+
+  <!-- Heavy full-payload mass: the cost /tree used to pay -->
+  <g opacity="0.55">
+    <rect x="48" y="46" width="268" height="238" rx="18" fill="url(#heavy)" stroke="#334155" stroke-width="1"/>
+    <g fill="#64748b">
+      <rect x="68" y="68" width="228" height="10" rx="3" opacity="0.55"/>
+      <rect x="68" y="88" width="196" height="10" rx="3" opacity="0.4"/>
+      <rect x="68" y="108" width="228" height="10" rx="3" opacity="0.5"/>
+      <rect x="68" y="128" width="164" height="10" rx="3" opacity="0.3"/>
+      <rect x="68" y="148" width="228" height="10" rx="3" opacity="0.45"/>
+      <rect x="68" y="168" width="188" height="10" rx="3" opacity="0.35"/>
+      <rect x="68" y="188" width="228" height="10" rx="3" opacity="0.5"/>
+      <rect x="68" y="208" width="140" height="10" rx="3" opacity="0.28"/>
+      <rect x="68" y="228" width="228" height="10" rx="3" opacity="0.4"/>
+      <rect x="68" y="248" width="172" height="10" rx="3" opacity="0.32"/>
+    </g>
+    <text x="182" y="36" text-anchor="middle" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" letter-spacing="0.18em">FULL PAYLOAD</text>
+  </g>
+
+  <!-- Slim projection tree -->
+  <g transform="translate(430,20)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <text x="250" y="16" text-anchor="middle" fill="#67e8f9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" letter-spacing="0.18em">SLIM TREE</text>
+
+    <path id="t1" d="M250 48 L250 108" stroke="#22d3ee" stroke-width="2.2" opacity="0.85"/>
+    <path id="t2" d="M250 108 L160 168" stroke="#22d3ee" stroke-width="1.7" opacity="0.7"/>
+    <path id="t3" d="M250 108 L340 168" stroke="#22d3ee" stroke-width="1.7" opacity="0.7"/>
+    <path id="t4" d="M160 168 L110 228" stroke="#67e8f9" stroke-width="1.4" opacity="0.65"/>
+    <path id="t5" d="M160 168 L210 228" stroke="#67e8f9" stroke-width="1.4" opacity="0.65"/>
+    <path id="t6" d="M340 168 L300 228" stroke="#155e75" stroke-width="1.2" opacity="0.55"/>
+    <path id="t7" d="M340 168 L390 228" stroke="#155e75" stroke-width="1.2" opacity="0.55"/>
+    <path id="t8" d="M250 108 L250 168" stroke="#164e63" stroke-width="1" opacity="0.4"/>
+
+    <g filter="url(#glow)">
+      <circle cx="250" cy="48" r="7" fill="#e0f2fe"/>
+      <circle cx="250" cy="108" r="6" fill="#67e8f9"/>
+      <circle cx="160" cy="168" r="6" fill="#22d3ee"/>
+      <circle cx="340" cy="168" r="5.5" fill="#155e75"/>
+      <circle cx="110" cy="228" r="5" fill="#67e8f9"/>
+      <circle cx="210" cy="228" r="7" fill="#ecfeff">
+        <animate attributeName="r" values="6;9;6" dur="1.8s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.7;1;0.7" dur="1.8s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="300" cy="228" r="5" fill="#164e63"/>
+      <circle cx="390" cy="228" r="5" fill="#164e63"/>
+      <circle cx="250" cy="168" r="4" fill="#0e7490" opacity="0.5"/>
+    </g>
+
+    <!-- Active-path marker -->
+    <circle cx="198" cy="228" r="3" fill="#facc15" filter="url(#soft)">
+      <animate attributeName="opacity" values="0.2;1;0.2" dur="1.4s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Scan / lightning that traces the live branch -->
+    <path d="M250 48 L250 108 L160 168 L210 228" stroke="url(#bolt)" stroke-width="3.4" filter="url(#glow)"/>
+    <circle r="3.4" fill="#ecfeff" filter="url(#soft)">
+      <animateMotion dur="2.8s" repeatCount="indefinite" rotate="auto">
+        <mpath xlink:href="#t1"/>
+      </animateMotion>
+    </circle>
+    <circle r="3" fill="#a5f3fc" filter="url(#soft)">
+      <animateMotion dur="2.8s" begin="0.35s" repeatCount="indefinite">
+        <mpath xlink:href="#t2"/>
+      </animateMotion>
+    </circle>
+    <circle r="3.6" fill="#ffffff" filter="url(#soft)">
+      <animateMotion dur="2.8s" begin="0.7s" repeatCount="indefinite">
+        <mpath xlink:href="#t5"/>
+      </animateMotion>
+    </circle>
+  </g>
+
+  <!-- Timing ticks -->
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#94a3b8">
+    <text x="182" y="308" text-anchor="middle">getTree() · full entries</text>
+    <text x="680" y="308" text-anchor="middle" fill="#67e8f9">project · 200-char preview</text>
+  </g>
+</svg>
