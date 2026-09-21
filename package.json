@@ -1,6 +1,6 @@
 {
   "name": "pi-fast-tree",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Fast session tree navigator for pi — slim in-memory projection instead of walking full message payloads",
   "type": "module",
   "author": "Tom X Nguyen",
