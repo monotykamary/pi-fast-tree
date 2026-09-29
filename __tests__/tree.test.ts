@@ -32,6 +32,20 @@ function toolOnlyAssistant(id: string, parentId: string): RawEntry {
 }
 
 describe("TreeView", () => {
+  it("matches Pi 0.99 usage and context-edit filtering without retaining replacement payloads", () => {
+    const tree = buildSlimTree([
+      msg("user", null, "user", "hi"),
+      { type: "usage", id: "usage", parentId: "user", timestamp: "2026-01-01" },
+      { type: "context_edit", id: "edit", parentId: "usage", timestamp: "2026-01-02", targetId: "user", replacement: null },
+    ]);
+    const view = new TreeView(tree, "edit");
+    expect(view.filteredNodes.map(n => n.node.entry.id)).toEqual(["user"]);
+    view.setFilter("all");
+    expect(view.filteredNodes.map(n => n.node.entry.id)).toEqual(["user", "edit"]);
+    view.setSearchQuery("context omit user");
+    expect(view.filteredNodes.map(n => n.node.entry.preview)).toEqual(["[context omit: user]"]);
+    expect(view.filteredNodes[0]!.node.entry).not.toHaveProperty("replacement");
+  });
   it("hides tool-only assistant rows in default filter except the current leaf", () => {
     const tree = buildSlimTree([
       msg("u1", null, "user", "hi"),

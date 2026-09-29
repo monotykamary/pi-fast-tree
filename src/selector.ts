@@ -128,6 +128,9 @@ export function getEntryDisplayText(node: SlimTreeNode, theme: Theme, isSelected
     case "custom":
       result = theme.fg("dim", `[custom: ${entry.customType}]`);
       break;
+    case "context_edit":
+      result = theme.fg("dim", entry.preview);
+      break;
     case "label":
       result = theme.fg("dim", `[label: ${entry.label ?? "(cleared)"}]`);
       break;

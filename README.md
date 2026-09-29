@@ -128,3 +128,9 @@ bun run check        # typecheck + vitest + knip
 ## License
 
 [MIT](LICENSE).
+
+## Pi 0.99 compatibility (0.1.3)
+
+TUI-scoped selector/shortcut patches restore safely in either extension cleanup order. Usage entries stay hidden and context edits have native-compatible labels/search/filtering. Verified native 0.99 methods, loading and UI lifecycle.
+
+Tested with Pi 0.99.0. Host-provided Pi packages are wildcard peers, not bundled dependencies; development uses exact 0.99.0 versions.

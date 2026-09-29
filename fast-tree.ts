@@ -224,123 +224,52 @@ export async function showFastTreePicker(
   }
 }
 
-let storedExtensionRunner: {
-  createCommandContext?: () => ExtensionCommandContext;
-} | null = null;
-let origShowTreeSelector: ((this: InteractiveMode, initialSelectedId?: string) => void) | null =
-  null;
-let origSetupExtensionShortcuts: Function | null = null;
-
-function patchSetupExtensionShortcuts(): void {
-  if (origSetupExtensionShortcuts !== null) return;
-  const proto = InteractiveMode.prototype as any;
-  if (
-    !InteractiveMode ||
-    typeof InteractiveMode !== "function" ||
-    typeof proto.setupExtensionShortcuts !== "function"
-  ) {
-    return;
-  }
-  origSetupExtensionShortcuts = proto.setupExtensionShortcuts;
-  proto.setupExtensionShortcuts = function (this: InteractiveMode, extensionRunner: any) {
-    storedExtensionRunner = extensionRunner;
-    origSetupExtensionShortcuts!.call(this, extensionRunner);
-  };
-}
-
-function unpatchSetupExtensionShortcuts(): void {
-  if (origSetupExtensionShortcuts === null) return;
-  const proto = InteractiveMode.prototype as any;
-  if (
-    InteractiveMode &&
-    typeof InteractiveMode === "function" &&
-    typeof proto.setupExtensionShortcuts === "function"
-  ) {
-    proto.setupExtensionShortcuts = origSetupExtensionShortcuts;
-  }
-  origSetupExtensionShortcuts = null;
-  storedExtensionRunner = null;
-}
-
-function installTreeHijack(): void {
-  if (origShowTreeSelector !== null) return;
-  const proto = InteractiveMode.prototype as any;
-  if (
-    !InteractiveMode ||
-    typeof InteractiveMode !== "function" ||
-    typeof proto.showTreeSelector !== "function"
-  ) {
-    return;
-  }
-  origShowTreeSelector = proto.showTreeSelector;
-  proto.showTreeSelector = function (this: InteractiveMode, initialSelectedId?: string) {
-    const session = (this as any).session;
-    if (!session?.extensionRunner?.createCommandContext) {
-      origShowTreeSelector!.call(this, initialSelectedId);
-      return;
-    }
-    const ctx = session.extensionRunner.createCommandContext() as ExtensionCommandContext;
-    const settingsManager = (this as any).settingsManager;
-    const initialFilterMode =
-      typeof settingsManager?.getTreeFilterMode === "function"
-        ? (settingsManager.getTreeFilterMode() as FilterMode)
-        : readSettingsFilterMode();
-    void showFastTreePicker(ctx, { initialSelectedId, initialFilterMode });
-  };
-}
-
-function uninstallTreeHijack(): void {
-  if (origShowTreeSelector === null) return;
-  const proto = InteractiveMode.prototype as any;
-  if (
-    InteractiveMode &&
-    typeof InteractiveMode === "function" &&
-    typeof proto.showTreeSelector === "function"
-  ) {
-    proto.showTreeSelector = origShowTreeSelector;
-  }
-  origShowTreeSelector = null;
-}
+import { installInteractivePatch } from "./src/interactive-patch.js";
 
 export default function (pi: ExtensionAPI) {
   const config = readConfig();
-  const hijackTree = config.hijackTree !== false;
+  const hijack = config.hijackTree !== false;
+  let runner: { createCommandContext(): ExtensionCommandContext } | undefined;
+  let restores: Array<() => void> = [];
 
-  if (hijackTree) {
-    installTreeHijack();
-  } else {
-    pi.registerCommand("fast-tree", {
-      description: "Fast session tree — slim projection, same navigator as /tree",
-      handler: async (_args, ctx) => {
-        await showFastTreePicker(ctx);
-      },
-    });
-  }
+  // Pi 0.99 binds session_start before setupExtensionShortcuts, including
+  // session replacement. Factories loaded for discovery must not patch the UI.
+  pi.on("session_start", (_event, ctx) => {
+    if (ctx.mode !== "tui" || restores.length) return;
+    try {
+      if (hijack) restores.push(installInteractivePatch(InteractiveMode.prototype, "showTreeSelector", function (original, ...args) {
+        const currentRunner = this.session?.extensionRunner;
+        if (!currentRunner?.createCommandContext) return original.apply(this, args);
+        return showFastTreePicker(currentRunner.createCommandContext(), { initialSelectedId: args[0] as string | undefined, initialFilterMode: this.settingsManager.getTreeFilterMode() }).catch((error: unknown) => {
+          ctx.ui.notify(`Fast tree: ${String(error)}`, "error");
+        });
+      }));
+      if (config.shortcut) restores.push(installInteractivePatch(InteractiveMode.prototype, "setupExtensionShortcuts", function (original, extensionRunner) {
+        runner = extensionRunner;
+        return original.call(this, extensionRunner);
+      }));
+    } catch (error) {
+      for (const restore of restores.reverse()) restore();
+      restores = [];
+      ctx.ui.notify(String(error), "warning");
+    }
+  });
 
-  const shortcut = config.shortcut;
-  if (shortcut) {
-    patchSetupExtensionShortcuts();
-    pi.registerShortcut(shortcut as KeyId, {
-      description: "Fast session tree",
-      handler: async (ctx) => {
-        if (
-          !storedExtensionRunner ||
-          typeof storedExtensionRunner.createCommandContext !== "function"
-        ) {
-          ctx.ui.notify(
-            "Fast tree shortcut: extension runner not available. Try reloading with /reload.",
-            "error",
-          );
-          return;
-        }
-        const cmdCtx = storedExtensionRunner.createCommandContext() as ExtensionCommandContext;
-        await showFastTreePicker(cmdCtx);
-      },
-    });
-  }
-
+  if (!hijack) pi.registerCommand("fast-tree", {
+    description: "Fast session tree",
+    handler: async (args, ctx) => { await showFastTreePicker(ctx); },
+  });
+  if (config.shortcut) pi.registerShortcut(config.shortcut as KeyId, {
+    description: "Fast session tree",
+    handler: async (ctx) => {
+      if (ctx.mode !== "tui") return;
+      if (!runner) { ctx.ui.notify("Fast tree: session shortcuts are not bound", "error"); return; }
+      await showFastTreePicker(runner.createCommandContext());
+    },
+  });
   pi.on("session_shutdown", () => {
-    if (hijackTree) uninstallTreeHijack();
-    if (shortcut) unpatchSetupExtensionShortcuts();
+    for (const restore of restores.reverse()) restore();
+    restores = [];
+    runner = undefined;
   });
 }

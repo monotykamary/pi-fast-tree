@@ -34,6 +34,8 @@ export type EntryKind =
   | "custom"
   | "label"
   | "session_info"
+  | "usage"
+  | "context_edit"
   | "unknown";
 
 export interface ToolCallMeta {
@@ -103,9 +105,11 @@ export interface RawEntry {
   name?: string;
   label?: string;
   targetId?: string;
+  replacement?: unknown;
 }
 
 const SETTINGS_TYPES = new Set([
+  "context_edit",
   "label",
   "custom",
   "model_change",
@@ -304,6 +308,8 @@ function kindFromEntry(entry: RawEntry): EntryKind {
       if (role === "bashExecution") return "bashExecution";
       return "otherMessage";
     }
+    case "usage":
+    case "context_edit":
     case "custom_message":
     case "compaction":
     case "branch_summary":
@@ -417,6 +423,12 @@ export function projectEntry(
     case "custom": {
       slim.customType = entry.customType;
       slim.searchText = buildSearchText([slim.label, "custom", entry.customType]);
+      break;
+    }
+    case "context_edit": {
+      const action = entry.replacement === null ? "omit" : "replace";
+      slim.preview = `[context ${action}: ${entry.targetId}]`;
+      slim.searchText = buildSearchText([slim.label, "context edit", action, entry.targetId]);
       break;
     }
     case "label": {

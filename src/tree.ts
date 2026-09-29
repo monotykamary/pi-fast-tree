@@ -94,6 +94,7 @@ export class TreeView {
     const searchTokens = this.searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
     this.filteredNodes = this.flatNodes.filter((flatNode) => {
       const entry = flatNode.node.entry;
+      if (entry.kind === "usage") return false;
       const isCurrentLeaf = entry.id === this.currentLeafId;
       if (entry.kind === "assistant" && !isCurrentLeaf) {
         if (!entry.hasText && !entry.isErrorOrAborted) return false;
