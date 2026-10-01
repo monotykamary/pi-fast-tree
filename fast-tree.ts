@@ -232,7 +232,7 @@ export default function (pi: ExtensionAPI) {
   let runner: { createCommandContext(): ExtensionCommandContext } | undefined;
   let restores: Array<() => void> = [];
 
-  // Pi 0.99 binds session_start before setupExtensionShortcuts, including
+  // Pi 1.0 binds session_start before setupExtensionShortcuts, including
   // session replacement. Factories loaded for discovery must not patch the UI.
   pi.on("session_start", (_event, ctx) => {
     if (ctx.mode !== "tui" || restores.length) return;

@@ -129,6 +129,13 @@ bun run check        # typecheck + vitest + knip
 
 [MIT](LICENSE).
 
+## Pi 1.0 compatibility (0.1.4)
+
+Tested against Pi **1.0.0** with exact SDK development pins and wildcard host peers.
+The live mapped InteractiveMode opens the fast tree and restores its selector hook on shutdown.
+
+Run `bun run test:host` for the offline real-host regression. Set `PI1_HOST_PACKAGE` to an installed Pi package directory and `PI1_HOST_ENTRY=bundle` to test its bundled CLI runtime.
+
 ## Pi 0.99 compatibility (0.1.3)
 
 TUI-scoped selector/shortcut patches restore safely in either extension cleanup order. Usage entries stay hidden and context edits have native-compatible labels/search/filtering. Verified native 0.99 methods, loading and UI lifecycle.

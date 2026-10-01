@@ -32,7 +32,7 @@ function toolOnlyAssistant(id: string, parentId: string): RawEntry {
 }
 
 describe("TreeView", () => {
-  it("matches Pi 0.99 usage and context-edit filtering without retaining replacement payloads", () => {
+  it("matches Pi 1.0 usage and context-edit filtering without retaining replacement payloads", () => {
     const tree = buildSlimTree([
       msg("user", null, "user", "hi"),
       { type: "usage", id: "usage", parentId: "user", timestamp: "2026-01-01" },

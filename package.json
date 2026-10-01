@@ -1,6 +1,6 @@
 {
   "name": "pi-fast-tree",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Fast session tree navigator for pi — slim in-memory projection instead of walking full message payloads",
   "type": "module",
   "author": "Tom X Nguyen",
@@ -35,6 +35,7 @@
     "access": "public"
   },
   "scripts": {
+    "test:host": "node scripts/pi1-host.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -43,8 +44,8 @@
     "check": "bun run typecheck && bun run test && bun run lint:dead"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "0.99.0",
-    "@earendil-works/pi-tui": "0.99.0",
+    "@earendil-works/pi-coding-agent": "1.0.0",
+    "@earendil-works/pi-tui": "1.0.0",
     "@types/node": "25.9.1",
     "@vitest/coverage-v8": "4.1.7",
     "knip": "6.14.1",
