@@ -131,7 +131,7 @@ bun run check        # typecheck + vitest + knip
 
 ## Pi 1.0 compatibility (0.1.4)
 
-Tested against Pi **1.0.0** with exact SDK development pins and wildcard host peers.
+Tested against Pi **1.1.0** with exact SDK development pins and wildcard host peers.
 The live mapped InteractiveMode opens the fast tree and restores its selector hook on shutdown.
 
 Run `bun run test:host` for the offline real-host regression. Set `PI1_HOST_PACKAGE` to an installed Pi package directory and `PI1_HOST_ENTRY=bundle` to test its bundled CLI runtime.

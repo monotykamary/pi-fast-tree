@@ -16,3 +16,5 @@ jobs:
           node-version: 24
       - run: bun install --frozen-lockfile
       - run: bun run check
+      - run: bun run test:host
+      - run: PI1_HOST_PACKAGE="$PWD/node_modules/@earendil-works/pi-coding-agent" PI1_HOST_ENTRY=bundle bun run test:host
